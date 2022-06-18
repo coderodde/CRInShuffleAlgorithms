@@ -17,8 +17,8 @@ public final class InPlaceInShuffleAlgorithm implements InShuffleAlgorithm {
      * In-shuffles the input array in linear time using constant amount of 
      * space.
      * 
-     * @param <E>
-     * @param array 
+     * @param <E>   the array component type.
+     * @param array the array to in-shuffle.
      */
     @Override
     public <E> void shuffle(E[] array) {
@@ -76,6 +76,16 @@ public final class InPlaceInShuffleAlgorithm implements InShuffleAlgorithm {
             }
         }
         
+        private static int pow(int base, int power) {
+            int product = 1;
+            
+            for (int i = 0; i < power; i++) {
+                product *= base;
+            }
+            
+            return product;
+        }
+        
         /**
          * Finds the values for the algorithm parameters.
          * 
@@ -83,15 +93,17 @@ public final class InPlaceInShuffleAlgorithm implements InShuffleAlgorithm {
          * @return the object holding the parameters.
          */
         private Parameters findParameters(int n) {
-            int t = 3;
-            int k = 0;
+            int t = 1;
+            int k = 1;
             
-            while (t <= 2 * n) {
-                t *= 3;
-                k++;
+            while (true) {
+                if (t <= 2 * n && 2 * n < 3 * t) {
+                    int m = (t - 1) / 2;
+                    return new Parameters(m, k);
+                }
+            
+                k  *= 3;
             }
-            
-            return new Parameters(((t / 3) - 1) >>> 1, k);
         }
         
         /**
@@ -106,7 +118,6 @@ public final class InPlaceInShuffleAlgorithm implements InShuffleAlgorithm {
         private void shuffle(int startIndex, int endIndex) {
             while (true) {
                 int n = (endIndex - startIndex + 1) >>> 1;
-                
                 Parameters parameters = findParameters(n);
                 
                 int m = parameters.m;
@@ -117,10 +128,7 @@ public final class InPlaceInShuffleAlgorithm implements InShuffleAlgorithm {
                 for (int i = 0, cycleStartIndex = 1;
                         i < k;
                         i++, cycleStartIndex *= 3) {
-                    cycleLeader(startIndex,
-                                endIndex,
-                                cycleStartIndex,
-                                m);
+                    cycleLeader(startIndex, cycleStartIndex, m);
                 }
                 
                 if (m == 0) {
@@ -143,7 +151,6 @@ public final class InPlaceInShuffleAlgorithm implements InShuffleAlgorithm {
          * @param order           the order.
          */
         private void cycleLeader(int startIndex, 
-                                 int endIndex,
                                  int cycleStartIndex,
                                  int order) {
             int currentIndex = cycleStartIndex;
